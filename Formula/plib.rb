@@ -41,6 +41,8 @@ class Plib < Formula
   end
 end
 
+# note: this patch comes from https://trac.macports.org/browser/trunk/dports/devel/plib/files
+# via https://gist.github.com/mkroehnert/effb45389e14fc28c286
 __END__
 diff --git a/src/pui/puGLUT.h b/src/pui/puGLUT.h
 index bd564a0..980035f 100644
