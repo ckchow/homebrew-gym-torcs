@@ -1,32 +1,69 @@
-# Documentation: https://docs.brew.sh/Formula-Cookbook
-#                https://rubydoc.brew.sh/Formula
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
 class Plib < Formula
-  desc ""
-  homepage ""
+  desc "Steve's portable game library"
+  homepage "http://plib.sourceforge.net/index.html"
   url "http://plib.sourceforge.net/dist/plib-1.8.5.tar.gz"
   sha256 "485b22bf6fdc0da067e34ead5e26f002b76326f6371e2ae006415dea6a380a32"
-  license ""
+  license "LGPL"
+
+  patch :p1, :DATA
 
 
   def install
-    # ENV.deparallelize  # if your formula fails when building in parallel
-    # Remove unrecognized options if warned by configure
-    # https://rubydoc.brew.sh/Formula.html#std_configure_args-instance_method
-    system "./configure", *std_configure_args, "--disable-silent-rules"
-    system "make", "install" # if this fails, try separate make/make install steps
+    system "./configure", "--disable-debug",
+                          "--disable-dependency-tracking",
+                          "--disable-silent-rules",
+                          "--disable-sl",
+                          "--disable-pw",
+                          "--prefix=#{prefix}"
+    system "make", "install"
   end
 
   test do
-    # `test do` will create, run in and delete a temporary directory.
-    #
-    # This test will fail and we won't accept that! For Homebrew/homebrew-core
-    # this will need to be a test that verifies the functionality of the
-    # software. Run the test with `brew test plib`. Options passed
-    # to `brew install` such as `--HEAD` also need to be provided to `brew test`.
-    #
-    # The installed folder is not in the path, so use the entire path to any
-    # executables being tested: `system "#{bin}/program", "do", "something"`.
-    system "false"
+    (testpath/"test.cpp").write <<~EOS
+    #include <plib/sg.h>
+    #include <plib/fnt.h>
+    #include <plib/js.h>
+    #include <plib/net.h>
+    #include <plib/psl.h>
+    #include <plib/puAux.h>
+    #include <plib/ul.h>
+    int main() {
+      sgVec3 Euler;
+      sgSetVec3( Euler, 1, 1, 1 ) ;
+      return 0;
+    }
+    EOS
+    system ENV.cc, "test.cpp", "-L#{lib}", 
+    "-lplibsg", "-lplibfnt", "-lplibjs", "-lplibnet", "-lplibpsl", "-lplibpuAux",
+    "-lplibul",
+    "-o", "test"
+    system "./test"
   end
 end
+
+__END__
+diff --git a/src/pui/puGLUT.h b/src/pui/puGLUT.h
+index bd564a0..980035f 100644
+--- a/src/pui/puGLUT.h
++++ b/src/pui/puGLUT.h
+@@ -32,6 +32,7 @@
+
+ #ifdef UL_MAC_OSX
+ # include <GLUT/glut.h>
++# define APIENTRY
+ #else
+ # ifdef FREEGLUT_IS_PRESENT /* for FreeGLUT like PLIB 1.6.1*/
+ #  include <GL/freeglut.h>
+ diff --git a/src/ssg/ssgLoadFLT.cxx b/src/ssg/ssgLoadFLT.cxx
+index 6990e25..6f9d4d2 100644
+--- a/src/ssg/ssgLoadFLT.cxx
++++ b/src/ssg/ssgLoadFLT.cxx
+@@ -142,7 +142,7 @@
+
+ typedef unsigned char ubyte;
+
+-#ifdef UL_WIN32
++#if defined(UL_WIN32) || defined(__APPLE__)
+ typedef unsigned short ushort;
+ typedef unsigned int uint;
+ #endif
