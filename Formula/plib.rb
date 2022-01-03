@@ -5,6 +5,9 @@ class Plib < Formula
   sha256 "485b22bf6fdc0da067e34ead5e26f002b76326f6371e2ae006415dea6a380a32"
   license "LGPL-2.0-only"
 
+  depends_on "freeglut"
+  depends_on "mesa"
+
   patch :p1, :DATA
 
   def install
